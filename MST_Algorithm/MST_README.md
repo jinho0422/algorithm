@@ -5,7 +5,7 @@
 - 간선에 비용이나 가중치가 할당된 그래프를 가중치 그래프(weighted graph)라고 한다. 정점의 연결 정보뿐만 아니라 연결에 필요한 비용을 함께 표현할 수 있다.
 - 아래와 그래프가 있다면, 이 그래프에서 `정점은 주요도시`를 나타내고 `간선은 두 도시를 직접 연결하는 고속도로`이며, `간선의 가중치는 연결된 두 도시의 거리나 이동 비용` 등을 나타낼 수 있다.
 
-<img src =" ../README_IMG/Weighted_Graph.PNG">
+<img src ="../README_IMG/Weighted_Graph.PNG">
 
 - 가중치 그래프는 수학적으로는 `G=(V, E, w)`와 같이 표현한다. `V(G)는 그래프 G의 정점들의 집합`을, `E(G)는 그래프 G의 간선들의 집합`을 의미하고, `w(e)는 간선 e의 강도, 비용, 또는 길이`라고 부른다. 어떤 가중치 그래프의 경로를 `p = (v0, v1, v2, … vk)`라고 한다면 경로의 강도 w(p)는 [![w(p) = \sum_{i=i}^{k}w(v_{i-1}, v_{i})](http://latex.codecogs.com/gif.latex?w(p)&space;=&space;\sum_{i=i}^{k}w(v_{i-1},&space;v_{i}))] 를 통해 `경로 상의 모든 간선의 강도 합`으로 표현된다.
 
@@ -38,13 +38,13 @@
 
     - (5) n - 1개의 간선이 삽입될 때까지 2번으로 이동한다.
 
-      <img src = "../README_IMG/Weighted_Graph1.PNG">
+      <img src = "../README_IMG/MST.PNG">
 
       ​
 
   - Kruskal Algorithm을 통한 MST를 사용할 때 사이클이 생기는 경우를 찾는 방법은 `지금 추가하고자 하는 간선의 양끝 정점이 같은 집합에 속해있는지를 판단` 하는 `Union-Find`를 알아야한다.
 
-    <img src = "../README_IMG/Weighted_Graph1.PNG">
+    <img src = "../README_IMG/Union-Find.PNG">
 
     - 사진(왼쪽)같은 집합이면 사이클이 생기므로 추가하면 안되고, 사진(오른쪽)같이 찾은 정점이 다른 집합에 들어있으면 추가한다.
     - `Union-Find` 에서 `Find는 원소가 속하는 집합이 무엇인지를 알아내는 것이고` `Union은 집합을 입력받아서 합집합을 만드는 연산`이라고 한다.
@@ -123,8 +123,9 @@
     	printf("%d\n", result);
     	return 0;
     }
-
-
     ```
 
-    ​
+
+    ​```
+
+    
