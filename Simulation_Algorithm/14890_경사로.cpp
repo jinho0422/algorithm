@@ -1,283 +1,105 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <cstdio>
-#include <cstring>
 #include <queue>
-#include <vector>
-#include <algorithm>
-
+#include <cmath>
 using namespace std;
 
 int N, L;
-int board[100][100];
+int board[101][101];
+bool check[2][101]; //check[0][0~100] --> hang이 경사로로 완벽한지 check[1][0~100] --> yal의 경사로가 완벽한지
 int result;
-bool check[201];
+
+queue<int> Q;
+
+void solve(int depth, int start);
 
 int main() {
+	//입력
 	scanf("%d %d", &N, &L);
 	for (int hang = 0; hang < N; hang++) {
 		for (int yal = 0; yal < N; yal++) {
 			scanf("%d", &board[hang][yal]);
 		}
 	}
-	//행의 첫번째부터 열의 첫번째 부터 보는 방식..
+	//행의 경사로 찾기
 	for (int hang = 0; hang < N; hang++) {
-		int temp = board[hang][0]; // 초기값 저장..
-		int cnt = 1; // 같은 크기의 칸을 세기위해..
-		int curve = 0; // 바뀌기 전의 경사가 몇이였는지 판단..
-		for (int yal = 1; yal < N; yal++) {
-			if (temp == board[hang][yal]) {// 경사의 크기가 같으면 cnt++
-				cnt++;
-				continue;
-			}
-
-			if (temp == board[hang][yal] - 1) {// 경사가 커질 때..		
-				if (cnt < L) break; // 경사로의 길이가 L보다 작다면 break..
-				if (curve == board[hang][yal]) { // 3 3 2 2 3 3 같은 곳을 보기 위해 ..
-
-					if (cnt / 2 >= L) { // 경사로의 길이를 반으로 나눴을 때 L보다 크다면 가능..
-						curve = temp;
-						temp = board[hang][yal];
-						cnt = 1;
-						continue;
-					}
-
-					else { // 경사로의 길이를 반으로 나눴을 때 L보다 작다면 불가능..
-						cnt = 0;
-						break;
-					}
-				}
-				if (cnt >= L) { // 1 1 2 2 3 3 , 1 1 2 2 2 2 ,같은 경우만 판단..
-					curve = temp;
-					temp = board[hang][yal];
-					cnt = 1;
-					continue;
-				}
-
-			}
-
-			if (temp == board[hang][yal] + 1) { // 경사가 작아질 때..
-				if (curve != 0) { // 3 3 2 2 1 1 
-					if (cnt < L && curve != board[hang][yal]) break;
-					else {
-						curve = temp;
-						temp = board[hang][yal];
-						cnt = 1;
-						continue;
-					}
-				}
-
-				curve = temp;
-				temp = board[hang][yal];
-				cnt = 1;
-				continue;
-			}
-
-			if (temp > board[hang][yal] + 1) { // 경사의 크기가 1보다 큰경우..
-				cnt = 0;
-				break;
-			}
-			if (temp < board[hang][yal] - 1) { // 경사의 크기가 1보다 큰경우..
-				cnt = 0;
-				break;
-			}
+		for (int yal = 0; yal < N; yal++) {
+			Q.push(board[hang][yal]);
 		}
-		if (cnt >= L) { // 열이 다 끝났을 때 경사로가 L보다 크면 결과값을 올려주고 hang은 더이상 안봐도 된다고 체크..
-			result++;
-			check[hang] = true;
+		solve(0, hang);
+		while (!Q.empty()) Q.pop();
+		//왼쪽에서 볼때 경사로가 안될시..
+		if (!check[0][hang]) {
+			for (int yal = N - 1; yal >= 0; yal--) {
+				Q.push(board[hang][yal]);
+			}
+			solve(0, hang);
+			while (!Q.empty()) Q.pop();
 		}
 	}
-	// 열의 첫번째부터 행의 첫번째를 보는 방법..
+	//열의 경사로 찾기
 	for (int yal = 0; yal < N; yal++) {
-		int temp = board[0][yal];
-		int cnt = 1;
-		int curve = 0;
-		for (int hang = 1; hang < N; hang++) {
-			if (temp == board[hang][yal]) {
-				cnt++;
-				continue;
-			}
-			if (temp == board[hang][yal] - 1) {// 보드가 커질 때..		
-				if (cnt < L) break;
-				if (curve == board[hang][yal]) {
-					if (cnt / 2 >= L) {
-						curve = temp;
-						temp = board[hang][yal];
-						cnt = 1;
-						continue;
-					}
-					else {
-						cnt = 0;
-						break;
-					}
-				}
-				if (cnt >= L) {
-					curve = temp;
-					temp = board[hang][yal];
-					cnt = 1;
-					continue;
-				}
-			}
-			if (temp == board[hang][yal] + 1) { // 보드가 작아질 때..
-				if (curve != 0) {
-					if (cnt < L && curve != board[hang][yal]) break;
-					else {
-						curve = temp;
-						temp = board[hang][yal];
-						cnt = 1;
-						continue;
-					}
-				}
-				curve = temp;
-				temp = board[hang][yal];
-				cnt = 1;
-				continue;
-			}
-
-			if (temp > board[hang][yal] + 1) {
-				cnt = 0;
-				break;
-			}
-			if (temp < board[hang][yal] - 1) {
-				cnt = 0;
-				break;
-			}
+		for (int hang = 0; hang < N; hang++) {
+			Q.push(board[hang][yal]);
 		}
-		if (cnt >= L) {
-			result++;
-			check[yal + 100] = true;
+		solve(1, yal);
+		while (!Q.empty()) Q.pop();
+		// 위에서 볼때 경사로가 안될시..
+		if (!check[1][yal]) {
+			for (int hang = N - 1; hang >= 0; hang--) {
+				Q.push(board[hang][yal]);
+			}
+			solve(1, yal);
+			while (!Q.empty()) Q.pop();
 		}
 	}
-
-
-	//행의첫번째부터 열의 마지막부터 보는 방법..
-	for (int hang = 0; hang < N; hang++) {
-		if (check[hang]) continue;
-		int temp = board[hang][N - 1];
-		int cnt = 1;
-		int curve = 0;
-		for (int yal = N - 2; yal >= 0; yal--) {
-			if (temp == board[hang][yal]) {
-				cnt++;
-				continue;
-			}
-			if (temp == board[hang][yal] - 1) {// 보드가 커질 때..		
-				if (cnt < L) break;
-				if (curve == board[hang][yal]) {
-
-					if (cnt / 2 >= L) {
-						curve = temp;
-						temp = board[hang][yal];
-						cnt = 1;
-						continue;
-					}
-					else {
-						cnt = 0;
-						break;
-					}
-				}
-				if (cnt >= L) {
-					curve = temp;
-					temp = board[hang][yal];
-					cnt = 1;
-					continue;
-				}
-			}
-			if (temp == board[hang][yal] + 1) { // 보드가 작아질 때..
-				if (curve != 0) {
-					if (cnt < L && curve != board[hang][yal]) break;
-					else {
-						curve = temp;
-						temp = board[hang][yal];
-						cnt = 1;
-						continue;
-					}
-				}
-				curve = temp;
-				temp = board[hang][yal];
-				cnt = 1;
-				continue;
-			}
-			if (temp > board[hang][yal] + 1) {
-				cnt = 0;
-				break;
-			}
-			if (temp < board[hang][yal] - 1) {
-				cnt = 0;
-				break;
-			}
-		}
-		if (cnt >= L) {
-			result++;
-			check[hang] = true;
+	//결과값 갱신 & 출력
+	for (int i = 0; i < 2; i++) {
+		for (int j = 0; j < N; j++) {
+			if (check[i][j]) result++;
 		}
 	}
-
-	//열의 첫번째부터 행의 마지막부터 보는방법 ..
-	for (int yal = 0; yal < N; yal++) {
-		if (check[100 + yal]) continue;
-		int temp = board[N - 1][yal];
-		int cnt = 1;
-		int curve = 0;
-		for (int hang = N - 2; hang >= 0; hang--) {
-			if (temp == board[hang][yal]) {
-				cnt++;
-				continue;
-			}
-			if (temp == board[hang][yal] - 1) {// 보드가 커질 때..		
-				if (cnt < L) break;
-				if (curve == board[hang][yal]) {
-
-					if (cnt / 2 >= L) {
-						curve = temp;
-						temp = board[hang][yal];
-						cnt = 1;
-						continue;
-					}
-					else {
-						cnt = 0;
-						break;
-					}
-				}
-				if (cnt >= L) {
-					curve = temp;
-					temp = board[hang][yal];
-					cnt = 1;
-					continue;
-				}
-
-			}
-			if (temp == board[hang][yal] + 1) { // 보드가 작아질 때..
-				if (curve != 0) {
-					if (cnt < L && curve != board[hang][yal]) break;
-					else {
-						curve = temp;
-						temp = board[hang][yal];
-						cnt = 1;
-						continue;
-					}
-				}
-				curve = temp;
-				temp = board[hang][yal];
-				cnt = 1;
-				continue;
-			}
-
-			if (temp > board[hang][yal] + 1) {
-				cnt = 0;
-				break;
-			}
-
-			if (temp < board[hang][yal] - 1) {
-				cnt = 0;
-				break;
-			}
-		}
-		if (cnt >= L) {
-			result++;
-			check[yal + 100] = true;
-		}
-	}
-
 	printf("%d\n", result);
 	return 0;
+}
+
+void solve(int depth, int start) {
+	int first = Q.front();
+	int checkFirst = Q.front(); // 최고점 찾기
+	int cnt = 0; // L만큼 있는지 판단하기 위해..
+	bool flag = false; // 다음번 단계가 높아지는지 낮아지는지 판단.
+	while (!Q.empty()) {
+		int p = Q.front();
+		if (checkFirst < p) checkFirst = p; // 최고점 갱신
+		if (first == p) { // 이전이랑 높이가 같으면 cnt++
+			Q.pop();
+			cnt++;
+		}
+		// 높이가 다를시
+		else if (first != p) {
+			if (first > p) { // 이전의 높이가 더 클 시
+				flag = true;
+				if (checkFirst == first) cnt = L; // 최고점이면 cnt == L로만들어준다
+			}
+
+			else if (first < p) { // 현재의 높이가 더 클 때
+				if (flag) { // 만약 이전에 내려왔던 적이 있으면
+					if (cnt < 2 * L) return; // 다시 올라갈 수 있는지 판단
+					else flag = false;
+
+				}
+			}
+			// cnt가 경사로의 길이보다 클때..
+			if (cnt >= L) {
+				if (abs(first - p) == 1) {
+					first = p;
+					cnt = 0;
+				}
+				else return;
+			}
+			else return;
+		}
+	}
+	// 활주로로 사용할 수 있는지 갱신..
+	if (cnt >= L) check[depth][start] = true;
 }
